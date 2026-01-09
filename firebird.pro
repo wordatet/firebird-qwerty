@@ -183,6 +183,7 @@ SOURCES += $$ASMCODE_IMPL \
     core/sha256.c \
     core/usb.c \
     core/usb_cx2.cpp \
+    core/usbip_server.cpp \
     core/usblink.c \
     core/usblink_cx2.cpp \
     qtframebuffer.cpp \
@@ -235,6 +236,9 @@ HEADERS += \
     core/sha256.h \
     core/translate.h \
     core/usb.h \
+    core/usb_cx2.h \
+    core/usbip_server.h \
+    core/usblink.h \
     core/usblink.h \
     core/usblink_queue.h \
     qtframebuffer.h \
@@ -307,3 +311,4 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/a
 
 # In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h
 QMAKE_EXTRA_TARGETS = armsnippets
+usbip_server.cpp
