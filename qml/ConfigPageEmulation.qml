@@ -125,6 +125,25 @@ ColumnLayout {
         }
     }
 
+    FBLabel {
+        text: qsTr("External Connectivity")
+        font.pixelSize: TextMetrics.title2Size
+        Layout.topMargin: 10
+        Layout.bottomMargin: 5
+        visible: !Emu.isMobile()
+    }
+
+    CheckBox {
+        text: qsTr("Enable USBIP Server (Port 3240)")
+        visible: !Emu.isMobile()
+
+        checked: Emu.usbipEnabled
+        onCheckedChanged: {
+            Emu.usbipEnabled = checked;
+            checked = Qt.binding(function() { return Emu.usbipEnabled; });
+        }
+    }
+
     Item {
         Layout.fillHeight: true
     }
