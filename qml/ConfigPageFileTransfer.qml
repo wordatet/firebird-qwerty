@@ -34,7 +34,7 @@ ColumnLayout {
         id: fileDialogLoader
         active: false
         sourceComponent: FileDialog {
-            nameFilters: [ qsTr("TNS Documents") +"(*.tns)", qsTr("Operating Systems") + "(*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
+            nameFilters: [ qsTr("All Files") + " (*)", qsTr("TNS Documents") +"(*.tns)", qsTr("Operating Systems") + "(*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
             selectMultiple: true
             onAccepted: {
                 transferStatus.text = qsTr("Starting");
