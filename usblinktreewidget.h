@@ -21,11 +21,19 @@ public:
   static void usblink_download_callback(int progress, void *data);
   static void usblink_move_progress(int progress, void *user_data);
 
+  // Recursive callbacks
+  static void usblink_recursive_download_callback(struct usblink_file *file,
+                                                  bool is_error, void *data);
+  static void usblink_recursive_delete_callback(struct usblink_file *file,
+                                                bool is_error, void *data);
+
   // Helper functions for usblink callbacks
   static bool usblink_dirlist_nested(QTreeWidgetItem *w);
   static QString usblink_path_item(QTreeWidgetItem *w);
 
 protected:
+  virtual QMimeData *
+  mimeData(const QList<QTreeWidgetItem *> items) const override;
   virtual QStringList mimeTypes() const override;
   virtual void dragEnterEvent(QDragEnterEvent *e) override;
   virtual bool dropMimeData(QTreeWidgetItem *parent, int index,
@@ -57,6 +65,7 @@ private slots:
   addTreeItem(QTreeWidgetItem *item,
               QTreeWidgetItem *parent); // Has to run in the UI thread. Internal
   void uploadFiles();                   // Internal
+  void uploadRecursive(const QString &localPath, const QString &remoteParent);
 
 private:
   static QString naturalSize(uint64_t bytes);

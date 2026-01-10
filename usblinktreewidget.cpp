@@ -1,3 +1,4 @@
+#include <QDirIterator>
 #include <QDragEnterEvent>
 #include <QFileDialog>
 #include <QLineEdit>
@@ -11,6 +12,13 @@
 #include "core/usblink_queue.h"
 
 static USBLinkTreeWidget *usblink_tree = nullptr;
+
+struct USBLinkRecursiveContext {
+  USBLinkTreeWidget *widget;
+  QString srcPath;
+  QString destPath;
+  QTreeWidgetItem *uiItem;
+};
 
 USBLinkTreeWidget::USBLinkTreeWidget(QWidget *parent) : QTreeWidget(parent) {
   connect(this, SIGNAL(customContextMenuRequested(QPoint)), this,
@@ -117,6 +125,10 @@ void USBLinkTreeWidget::customContextMenuRequested(QPoint pos) {
       // Non-empty directory
       action_delete->setDisabled(true);
     }
+
+    QAction *action_download = new QAction(tr("Download"), menu);
+    connect(action_download, SIGNAL(triggered()), this, SLOT(downloadEntry()));
+    menu->addAction(action_download);
   } else {
     // Is not a directory
     QAction *action_download = new QAction(tr("Download"), menu);
@@ -171,6 +183,17 @@ QStringList USBLinkTreeWidget::mimeTypes() const {
   return QStringList(QStringLiteral("text/uri-list"));
 }
 
+QMimeData *
+USBLinkTreeWidget::mimeData(const QList<QTreeWidgetItem *> items) const {
+  QMimeData *mime = new QMimeData();
+  QList<QUrl> urls;
+  for (auto item : items) {
+    urls.append(QUrl(QStringLiteral("usblink://") + usblink_path_item(item)));
+  }
+  mime->setUrls(urls);
+  return mime;
+}
+
 void USBLinkTreeWidget::dragEnterEvent(QDragEnterEvent *e) {
   if (e->mimeData()->hasUrls())
     e->acceptProposedAction();
@@ -190,13 +213,118 @@ bool USBLinkTreeWidget::dropMimeData(QTreeWidgetItem *parent, int index,
     parentDir = QLatin1String("/");
 
   for (auto &&url : data->urls()) {
-    auto local = QDir::toNativeSeparators(url.toLocalFile());
-    auto remote = parentDir + QLatin1Char('/') + QFileInfo(local).fileName();
-    usblink_queue_put_file(local.toStdString(), remote.toStdString(),
+    if (url.scheme() == QStringLiteral("usblink")) {
+      // Internal move
+      QString srcPath = url.path();
+      QString fileName = QFileInfo(srcPath).fileName();
+      // Handle trailing slash if root? usblink paths usually don't have it
+      // unless "/"
+      if (srcPath == QStringLiteral("/"))
+        continue;
+
+      QString destPath = parentDir;
+      if (!destPath.endsWith(QLatin1Char('/')))
+        destPath += QLatin1Char('/');
+      destPath += fileName;
+
+      if (srcPath != destPath) {
+        usblink_queue_move(srcPath.toStdString(), destPath.toStdString(),
                            usblink_upload_callback, this);
+      }
+    } else if (url.isLocalFile()) {
+      // External upload
+      auto local = QDir::toNativeSeparators(url.toLocalFile());
+      QFileInfo info(local);
+      QString remote = parentDir;
+      if (!remote.endsWith(QLatin1Char('/')))
+        remote += QLatin1Char('/');
+      remote += info.fileName();
+
+      if (info.isDir()) {
+        usblink_queue_new_dir(remote.toStdString(), usblink_upload_callback,
+                              this);
+        uploadRecursive(local, remote);
+      } else {
+        usblink_queue_put_file(local.toStdString(), remote.toStdString(),
+                               usblink_upload_callback, this);
+      }
+    }
   }
 
   return true;
+}
+
+void USBLinkTreeWidget::uploadRecursive(const QString &localPath,
+                                        const QString &remoteParent) {
+  QDirIterator it(localPath, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+  while (it.hasNext()) {
+    it.next();
+    QString childRemote = remoteParent;
+    if (!childRemote.endsWith(QLatin1Char('/')))
+      childRemote += QLatin1Char('/');
+    childRemote += it.fileName();
+
+    if (it.fileInfo().isDir()) {
+      usblink_queue_new_dir(childRemote.toStdString(), usblink_upload_callback,
+                            this);
+      uploadRecursive(it.filePath(), childRemote);
+    } else {
+      usblink_queue_put_file(it.filePath().toStdString(),
+                             childRemote.toStdString(), usblink_upload_callback,
+                             this);
+    }
+  }
+}
+
+void USBLinkTreeWidget::usblink_recursive_delete_callback(
+    struct usblink_file *file, bool is_error, void *data) {
+  auto *ctx = static_cast<USBLinkRecursiveContext *>(data);
+
+  if (is_error || !file) {
+    usblink_queue_delete(ctx->srcPath.toStdString(), true,
+                         usblink_delete_callback, ctx->uiItem);
+    delete ctx;
+    return;
+  }
+
+  QString fullRemote =
+      ctx->srcPath + QLatin1Char('/') + QString::fromUtf8(file->filename);
+
+  if (file->is_dir) {
+    auto *newCtx = new USBLinkRecursiveContext{ctx->widget, fullRemote,
+                                               QString(), nullptr};
+    usblink_queue_dirlist(fullRemote.toStdString(),
+                          usblink_recursive_delete_callback, newCtx);
+  } else {
+    usblink_queue_delete(fullRemote.toStdString(), false,
+                         usblink_delete_callback, nullptr);
+  }
+}
+
+void USBLinkTreeWidget::usblink_recursive_download_callback(
+    struct usblink_file *file, bool is_error, void *data) {
+  auto *ctx = static_cast<USBLinkRecursiveContext *>(data);
+
+  if (is_error || !file) {
+    delete ctx;
+    return;
+  }
+
+  QString fullRemote =
+      ctx->srcPath + QLatin1Char('/') + QString::fromUtf8(file->filename);
+  QString fullLocal =
+      ctx->destPath + QLatin1Char('/') + QString::fromUtf8(file->filename);
+
+  if (file->is_dir) {
+    QDir().mkpath(fullLocal);
+    auto *newCtx = new USBLinkRecursiveContext{ctx->widget, fullRemote,
+                                               fullLocal, nullptr};
+    usblink_queue_dirlist(fullRemote.toStdString(),
+                          usblink_recursive_download_callback, newCtx);
+  } else {
+    usblink_queue_download(fullRemote.toStdString(), fullLocal.toStdString(),
+                           usblink_download_callback, ctx->widget);
+  }
 }
 
 bool USBLinkTreeWidget::usblink_dirlist_nested(QTreeWidgetItem *w) {
@@ -306,26 +434,59 @@ void USBLinkTreeWidget::dataChangedHandler(QTreeWidgetItem *item, int column) {
 }
 
 void USBLinkTreeWidget::downloadEntry() {
-  if (!context_menu_item ||
-      context_menu_item->data(0, Qt::UserRole).toBool()) // Is a directory
+  if (!context_menu_item)
     return;
 
-  QString dest = QFileDialog::getSaveFileName(
-      this, tr("Chose save location"),
-      context_menu_item->data(0, Qt::DisplayRole).toString(),
-      tr("TNS file (*.tns)"));
-  if (!dest.isEmpty())
-    usblink_queue_download(usblink_path_item(context_menu_item).toStdString(),
-                           dest.toStdString(), usblink_download_callback, this);
+  bool is_dir = context_menu_item->data(0, Qt::UserRole).toBool();
+  QString remotePath = usblink_path_item(context_menu_item);
+
+  if (is_dir) {
+    QString dest =
+        QFileDialog::getExistingDirectory(this, tr("Choose save location"));
+    if (dest.isEmpty())
+      return;
+
+    QString folderName = context_menu_item->text(0);
+    QDir dir(dest);
+    if (!dir.mkpath(folderName)) {
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Could not create local directory"));
+      return;
+    }
+    QString fullDest = dir.filePath(folderName);
+
+    auto *ctx =
+        new USBLinkRecursiveContext{this, remotePath, fullDest, nullptr};
+    usblink_queue_dirlist(remotePath.toStdString(),
+                          usblink_recursive_download_callback, ctx);
+  } else {
+    QString dest = QFileDialog::getSaveFileName(
+        this, tr("Chose save location"),
+        context_menu_item->data(0, Qt::DisplayRole).toString(),
+        tr("TNS file (*.tns)"));
+    if (!dest.isEmpty())
+      usblink_queue_download(remotePath.toStdString(), dest.toStdString(),
+                             usblink_download_callback, this);
+  }
 }
 
 void USBLinkTreeWidget::deleteEntry() {
   if (!context_menu_item)
     return;
 
-  usblink_queue_delete(usblink_path_item(context_menu_item).toStdString(),
-                       context_menu_item->data(0, Qt::UserRole).toBool(),
-                       usblink_delete_callback, context_menu_item);
+  bool is_dir = context_menu_item->data(0, Qt::UserRole).toBool();
+  std::string remotePath = usblink_path_item(context_menu_item).toStdString();
+
+  if (is_dir) {
+    // For recursive delete, we need a context to handle the final folder
+    // deletion
+    auto *ctx = new USBLinkRecursiveContext{
+        this, QString::fromStdString(remotePath), QString(), context_menu_item};
+    usblink_queue_dirlist(remotePath, usblink_recursive_delete_callback, ctx);
+  } else {
+    usblink_queue_delete(remotePath, is_dir, usblink_delete_callback,
+                         context_menu_item);
+  }
 }
 
 void USBLinkTreeWidget::newFolder() {
