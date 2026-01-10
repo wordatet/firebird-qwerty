@@ -649,6 +649,7 @@ bool QMLBridge::getUSBIPEnabled() {
 }
 
 void QMLBridge::setUSBIPEnabled(bool e) {
+  settings.setValue(QStringLiteral("usbipEnabled"), e);
   if (e) {
     if (usblink_connected) {
       usblink_reset(); // Disconnect internal link to avoid conflict
@@ -668,4 +669,16 @@ void QMLBridge::setUSBIPEnabled(bool e) {
 #endif
   }
   emit usbipEnabledChanged();
+}
+
+bool QMLBridge::getUSBIPVerbose() {
+  bool v = settings.value(QStringLiteral("usbipVerbose"), false).toBool();
+  USBIPServer::instance().setVerbose(v);
+  return v;
+}
+
+void QMLBridge::setUSBIPVerbose(bool e) {
+  settings.setValue(QStringLiteral("usbipVerbose"), e);
+  USBIPServer::instance().setVerbose(e);
+  emit usbipVerboseChanged();
 }

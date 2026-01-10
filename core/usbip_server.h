@@ -38,6 +38,9 @@ public:
   void stop();
   bool isRunning() const { return m_running; }
 
+  void setVerbose(bool v) { m_verbose = v; }
+  bool getVerbose() const { return m_verbose; }
+
   // Called by usb_cx2 when a packet is received from the calculator (IN
   // transfer) or when an OUT transfer generated a response/ACK that needs to be
   // signaled? Actually, USBIP works by submitting URBs. For IN transfers, we
@@ -79,6 +82,7 @@ private:
 
   // Active connection state
   std::atomic<int> m_clientSock;
+  std::atomic<bool> m_verbose;
   std::mutex m_clientMutex;
   std::mutex m_sendMutex;
 

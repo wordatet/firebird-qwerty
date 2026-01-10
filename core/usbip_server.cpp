@@ -22,8 +22,18 @@ typedef int socklen_t;
 #define LOG(...)                                                               \
   do {                                                                         \
     gui_debug_printf(LOG_TAG ": " __VA_ARGS__);                                \
+    gui_debug_printf("\n");                                                    \
     printf(LOG_TAG ": " __VA_ARGS__);                                          \
     printf("\n");                                                              \
+  } while (0)
+#define VLOG(...)                                                              \
+  do {                                                                         \
+    if (m_verbose) {                                                           \
+      gui_debug_printf(LOG_TAG ": " __VA_ARGS__);                              \
+      gui_debug_printf("\n");                                                  \
+      printf(LOG_TAG ": " __VA_ARGS__);                                        \
+      printf("\n");                                                            \
+    }                                                                          \
   } while (0)
 
 // Structs for protocol
@@ -66,7 +76,7 @@ static const char *kPath = "/sys/devices/pci0000:00/0000:00:01.2/usb1/1-1";
 static const char *kBusId = "1-1";
 
 USBIPServer::USBIPServer()
-    : m_running(false), m_serverSock(-1), m_clientSock(-1) {
+    : m_running(false), m_serverSock(-1), m_clientSock(-1), m_verbose(false) {
 #ifdef _WIN32
   WSADATA wsaData;
   WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -218,7 +228,7 @@ void USBIPServer::clientHandler(int sock) {
         handleReqImport(sock, busid);
       } break;
       default:
-        LOG("Unknown OP %04x", code);
+        VLOG("Unknown OP %04x", code);
         break;
       }
     } else {
@@ -240,7 +250,7 @@ void USBIPServer::clientHandler(int sock) {
           return;
         handleCmdUnlink(sock, buf);
       } else {
-        LOG("Unknown CMD %08x", cmd);
+        VLOG("Unknown CMD %08x", cmd);
         return; // Desync
       }
     }
@@ -391,11 +401,11 @@ void USBIPServer::handleCmdSubmit(int sock, const uint8_t *header) {
   uint32_t dir = ntohl(cmd->base.direction); // 0=OUT, 1=IN
   uint32_t len = ntohl(cmd->transfer_buffer_length);
 
-  LOG("CMD_SUBMIT Seq %u EP %u Dir %u Len %u Setup: %02x %02x %02x %02x %02x "
-      "%02x %02x %02x",
-      seq, ep, dir, len, cmd->setup[0], cmd->setup[1], cmd->setup[2],
-      cmd->setup[3], cmd->setup[4], cmd->setup[5], cmd->setup[6],
-      cmd->setup[7]);
+  VLOG("CMD_SUBMIT Seq %u EP %u Dir %u Len %u Setup: %02x %02x %02x %02x %02x "
+       "%02x %02x %02x",
+       seq, ep, dir, len, cmd->setup[0], cmd->setup[1], cmd->setup[2],
+       cmd->setup[3], cmd->setup[4], cmd->setup[5], cmd->setup[6],
+       cmd->setup[7]);
 
   if (ep == 0) {
     if (dir == 0) { // OUT
@@ -491,5 +501,5 @@ void USBIPServer::onPacketFromCalc(int ep, const uint8_t *data, size_t size) {
     }
   }
 
-  // LOG("Dropped calc packet EP%d Size %zu (No pending req)", ep, size);
+  // VLOG("Dropped calc packet EP%d Size %zu (No pending req)", ep, size);
 }

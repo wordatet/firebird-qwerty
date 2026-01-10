@@ -83,6 +83,8 @@ public:
 
   Q_INVOKABLE bool getUSBIPEnabled();
   Q_INVOKABLE void setUSBIPEnabled(bool e);
+  Q_INVOKABLE bool getUSBIPVerbose();
+  Q_INVOKABLE void setUSBIPVerbose(bool e);
 
   double getSpeed();
   bool getTurboMode();
@@ -93,6 +95,8 @@ public:
                  turboModeChanged)
   Q_PROPERTY(bool usbipEnabled READ getUSBIPEnabled WRITE setUSBIPEnabled NOTIFY
                  usbipEnabledChanged)
+  Q_PROPERTY(bool usbipVerbose READ getUSBIPVerbose WRITE setUSBIPVerbose NOTIFY
+                 usbipVerboseChanged)
 
   int getMobileX();
   void setMobileX(int x);
@@ -182,6 +186,7 @@ signals:
   void speedChanged();
   void turboModeChanged();
   void usbipEnabledChanged();
+  void usbipVerboseChanged();
 
   void currentKitChanged(const Kit &kit);
 

@@ -144,6 +144,18 @@ ColumnLayout {
         }
     }
 
+    CheckBox {
+        text: qsTr("Verbose USBIP Logs")
+        visible: !Emu.isMobile()
+        enabled: Emu.usbipEnabled
+
+        checked: Emu.usbipVerbose
+        onCheckedChanged: {
+            Emu.usbipVerbose = checked;
+            checked = Qt.binding(function() { return Emu.usbipVerbose; });
+        }
+    }
+
     Item {
         Layout.fillHeight: true
     }
