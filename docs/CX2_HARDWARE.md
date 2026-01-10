@@ -9,6 +9,25 @@ The "Aladdin" SoC used in the TI-Nspire CX II is a custom System-on-Chip compose
 
 ## Peripheral Mapping
 
+### LCD Controller (FTLCDC210)
+**Status**: Partial / Hacky
+**Address**: `0x900C0000` (Registers) / `0xA8000000` (Magic VRAM)
+
+*   **Identified IP**: Faraday FTLCDC210.
+*   **Key Feature**: Hardware Windowing (HWW). Supports multiple overlapping windows (overlays) blended in real-time.
+*   **"Magic VRAM"**: The region at `0xA8000000` is used for these hardware windows.
+*   **OS Behavior**: The stock TI-Nspire OS (CX II) renders the mouse cursor in **software** directly into the framebuffer (at `0xA8000000`), bypassing the hardware cursor registers. This explains why register spies remain silent during mouse movement.
+*   **Current Hack**: Firebird treats `0xA8000000` as standard RAM and only renders the primary framebuffer. This works for the OS because it manually draws the cursor pixels there.
+*   **Optimization Target**: Real hardware supports automatic transposition (rotation). The current C++ manual rotation loop in `lcd_cx_w_draw_frame` can be replaced with proper FTLCDC210 windowing logic.
+
+### DMA Controller
+**Status**: Liked FTDMAC020 (Mapped / Unused)
+**Address**: `0x90100000` (original CX) / `0xBC000000` (Aladdin)
+
+*   **Identified IP**: Likely **FTDMAC020** (standard Faraday suite).
+*   **Verification**: Probes at `0xBC000000` show **no activity** during OS boot or GUI operation. The OS appears to use PIO (CPU) for most transfers in its current state.
+*   **Mapping**: Firebird maps `0xBC00xxxx` to a generic DMA handler compatible with FTDMAC020.
+
 ### Power Management Unit (PMU)
 - **Base Address**: `0x90140000`
 - **Faraday IP**: `FTPMU010`

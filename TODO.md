@@ -1,7 +1,10 @@
 ##CX II:
-* Check other aladdin PMU bits
+* ~Check other aladdin PMU bits~ (PARTIALLY DONE: Naming/Spec identified)
+    * Implement AHB/APB clock gating in Aladdin PMU (0x38, 0x3C)
+    * Research TI-specific ASIC registers (0x808-0x810) vs OS version
 * Refactor flash code, split controllers and image manipulation?
-* Handle the LCD and "Magic VRAM" correctly
+* Handle the LCD and "Magic VRAM" correctly (RESEARCHED: OS uses software cursor fallback)
+* Research Aladdin DMA (DONE: Mapped 0xBC000000, likely FTDMAC020, unused by OS)
 
 ##TODO:
 * Implement write_action for non-x86 to handle SMC and clearing RF_CODE_NO_TRANSLATE correctly
