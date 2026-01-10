@@ -13,6 +13,8 @@ typedef struct aladdin_pmu_state {
   uint32_t pdllcr0;         // 0x30, was clocks
   uint32_t pmsr;            // 0x20, was disable[0]
   uint32_t pgsr;            // 0x24, was int_state
+  uint32_t ahbmclkoff;      // 0x38, AHB Clock Gating
+  uint32_t apbmclkoff;      // 0x3C, APB Clock Gating
   uint32_t pspr[16];        // 0x50-0x8C, scratchpads/status
   uint32_t regs[0x100 / 4]; // Generic access for other registers
 } aladdin_pmu_state;

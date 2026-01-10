@@ -14,6 +14,8 @@ struct aladdin_pmu_state aladdin_pmu;
 void aladdin_pmu_reset(void) {
   memset(&aladdin_pmu, 0, sizeof(aladdin_pmu));
   aladdin_pmu.pdllcr0 = 0x21020303;     // Correct for PDLLCR0
+  aladdin_pmu.ahbmclkoff = 0;           // All AHB clocks ON by default
+  aladdin_pmu.apbmclkoff = 0;           // All APB clocks ON by default
   aladdin_pmu.regs[0x08 >> 2] = 0x2000; // OSCC
   aladdin_pmu.regs[0x28 >> 2] = 0x1A;   // MFPSR
   aladdin_pmu.regs[0x2C >> 2] = 0x101;  // MISC
@@ -47,6 +49,10 @@ uint32_t aladdin_pmu_read(uint32_t addr) {
       return aladdin_pmu.pgsr;
     case 0x30:
       return aladdin_pmu.pdllcr0;
+    case 0x38:
+      return aladdin_pmu.ahbmclkoff;
+    case 0x3C:
+      return aladdin_pmu.apbmclkoff;
     case 0x50:
       return aladdin_pmu.pspr[0];
     case 0x60:
@@ -95,6 +101,12 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value) {
       aladdin_pmu.pdllcr0 = value;
       aladdin_pmu.pgsr |= 1;
       aladdin_pmu_update_int();
+      return;
+    case 0x38:
+      aladdin_pmu.ahbmclkoff = value;
+      return;
+    case 0x3C:
+      aladdin_pmu.apbmclkoff = value;
       return;
     case 0x50:
       aladdin_pmu.pspr[0] = value;
