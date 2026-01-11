@@ -56,3 +56,11 @@ This is hardware transposition, not software.
 ### LCD Backlight (0x90130000)
 - `0x90130014`: Brightness (0=brightest, 225=darkest)
 - `0x90130018`: Enable (write 255)
+
+## Flash Management (Datalight)
+
+The TI-Nspire CX II uses **Datalight FlashFX** and **Reliance** for NAND flash management and file system reliability. This core handles wear leveling and bad block management.
+
+**Relevant Patents (Datalight Inc.):**
+- **US5860082A**: Method for managing bad areas of flash memory.
+- **US6260156B1**: Method, system and computer-readable medium for managing bad areas in flash memory.
