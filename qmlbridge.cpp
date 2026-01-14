@@ -240,18 +240,18 @@ void QMLBridge::setUSBDir(QString dir)
     emit usbDirChanged();
 }
 
-bool QMLBridge::getQwerty()
+int QMLBridge::getKeypadLayout()
 {
-    return settings.value(QStringLiteral("qwertyKeypad"), false).toBool();
+    return settings.value(QStringLiteral("keypadLayout"), 0).toInt();
 }
 
-void QMLBridge::setQwerty(bool e)
+void QMLBridge::setKeypadLayout(int layout)
 {
-    if(getQwerty() == e)
+    if(getKeypadLayout() == layout)
         return;
 
-    settings.setValue(QStringLiteral("qwertyKeypad"), e);
-    emit qwertyChanged();
+    settings.setValue(QStringLiteral("keypadLayout"), layout);
+    emit keypadLayoutChanged();
 }
 
 bool QMLBridge::getIsRunning()

@@ -114,14 +114,27 @@ ColumnLayout {
         }
     }
 
-    CheckBox {
-        text: qsTr("QWERTY Keypad")
-
-        checked: Emu.qwerty
+    RowLayout {
+        // No spacing so that the spin box looks like part of the label
+        spacing: 10
+        width: parent.width
+        Layout.fillWidth: true
         visible: Emu.isMobile()
-        onCheckedChanged: {
-            Emu.qwerty = checked;
-            checked = Qt.binding(function() { return Emu.qwerty; });
+
+        FBLabel {
+            text: qsTr("Keypad Layout")
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        ComboBox {
+            id: keypadLayoutCombo
+            Layout.fillWidth: true
+            model: ["ABC", "QWERTY", "QWERTZ", "AZERTY"]
+            currentIndex: Emu.keypadLayout
+            onCurrentIndexChanged: {
+                Emu.keypadLayout = currentIndex;
+                currentIndex = Qt.binding(function() { return Emu.keypadLayout; });
+            }
         }
     }
 
