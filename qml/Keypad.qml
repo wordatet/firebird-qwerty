@@ -35,6 +35,28 @@ Rectangle {
         {text: "C", id: 48}, {text: "V", id: 13}, {text: "B", id: 49}, {text: "N", id: 27}, {text: "M", id: 28}
     ]
 
+    property var qwertzRow1: [
+        {text: "Q", id: 23}, {text: "W", id: 12}, {text: "E", id: 45}, {text: "R", id: 22}, {text: "T", id: 16}, {text: "Z", id: 5}, {text: "U", id: 15}
+    ]
+    property var qwertzRow2: qwertyRow2
+    property var qwertzRow3: [
+        {text: "G", id: 39}, {text: "H", id: 38}, {text: "J", id: 35}, {text: "K", id: 34}, {text: "L", id: 33}, {text: "Y", id: 6}, {text: "X", id: 11}
+    ]
+    property var qwertzRow4: qwertyRow4
+
+    property var azertyRow1: [
+        {text: "A", id: 50}, {text: "Z", id: 5}, {text: "E", id: 45}, {text: "R", id: 22}, {text: "T", id: 16}, {text: "Y", id: 6}, {text: "U", id: 15}
+    ]
+    property var azertyRow2: [
+        {text: "I", id: 37}, {text: "O", id: 26}, {text: "P", id: 24}, {text: "Q", id: 23}, {text: "S", id: 17}, {text: "D", id: 46}, {text: "F", id: 44}
+    ]
+    property var azertyRow3: [
+        {text: "G", id: 39}, {text: "H", id: 38}, {text: "J", id: 35}, {text: "K", id: 34}, {text: "L", id: 33}, {text: "M", id: 28}, {text: "W", id: 12}
+    ]
+    property var azertyRow4: [
+        {text: "X", id: 11}, {text: "C", id: 48}, {text: "V", id: 13}, {text: "B", id: 49}, {text: "N", id: 27}
+    ]
+
     ColumnLayout {
         id: columnLayout1
         width: 33
@@ -390,6 +412,30 @@ Rectangle {
         }
     }
 
+    function getRowModel(row) {
+        if (Emu.keypadLayout === 1) { // QWERTY
+            if (row === 1) return qwertyRow1;
+            if (row === 2) return qwertyRow2;
+            if (row === 3) return qwertyRow3;
+            if (row === 4) return qwertyRow4;
+        } else if (Emu.keypadLayout === 2) { // QWERTZ
+            if (row === 1) return qwertzRow1;
+            if (row === 2) return qwertzRow2;
+            if (row === 3) return qwertzRow3;
+            if (row === 4) return qwertzRow4;
+        } else if (Emu.keypadLayout === 3) { // AZERTY
+            if (row === 1) return azertyRow1;
+            if (row === 2) return azertyRow2;
+            if (row === 3) return azertyRow3;
+            if (row === 4) return azertyRow4;
+        }
+        // Default: ABC
+        if (row === 1) return abcRow1;
+        if (row === 2) return abcRow2;
+        if (row === 3) return abcRow3;
+        if (row === 4) return abcRow4;
+    }
+
     GridLayout {
         id: gridLayout2
         anchors.top: gridLayout1.bottom
@@ -406,14 +452,14 @@ Rectangle {
 
         NAlphaButton { width: 21; text: "EE" ;keymap_id: 30 }
         Repeater {
-            model: Emu.qwerty ? qwertyRow1 : abcRow1
+            model: getRowModel(1)
             NAlphaButton { text: modelData.text; keymap_id: modelData.id }
         }
         NAlphaButton { width: 21; text: "?!▸";keymap_id: 8 }
 
         NAlphaButton { width: 21; text: "π▸";keymap_id: 19 }
         Repeater {
-            model: Emu.qwerty ? qwertyRow2 : abcRow2
+            model: getRowModel(2)
             NAlphaButton { text: modelData.text; keymap_id: modelData.id }
         }
         NAlphaButton { width: 21; text: "";keymap_id: 66;
@@ -428,7 +474,7 @@ Rectangle {
 
         NAlphaButton { width: 21; text: "," ;keymap_id: 87 }
         Repeater {
-            model: Emu.qwerty ? qwertyRow3 : abcRow3
+            model: getRowModel(3)
             NAlphaButton { text: modelData.text; keymap_id: modelData.id }
         }
         NAlphaButton { width: 21; text: "↵";keymap_id: 0 }
@@ -439,7 +485,7 @@ Rectangle {
             height: 15
         }
         Repeater {
-            model: Emu.qwerty ? qwertyRow4 : abcRow4
+            model: getRowModel(4)
             NAlphaButton { text: modelData.text; keymap_id: modelData.id }
         }
 

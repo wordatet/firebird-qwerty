@@ -12,33 +12,22 @@ public:
   explicit QMLBridge(QObject *parent = 0);
   ~QMLBridge();
 
-  Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY
-                 gdbPortChanged)
-  Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY
-                 gdbEnabledChanged)
-  Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY
-                 rdbPortChanged)
-  Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY
-                 rdbEnabledChanged)
-  Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY
-                 debugOnStartChanged)
-  Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY
-                 debugOnWarnChanged)
-  Q_PROPERTY(bool printOnWarn READ getPrintOnWarn WRITE setPrintOnWarn NOTIFY
-                 printOnWarnChanged)
-  Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY
-                 autostartChanged)
-  Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit
-                 NOTIFY defaultKitChanged)
-  Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY
-                 leftHandedChanged)
-  Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose
-                 NOTIFY suspendOnCloseChanged)
-  Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
-  Q_PROPERTY(QString version READ getVersion CONSTANT)
-  Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
-  Q_PROPERTY(bool qwerty READ getQwerty WRITE setQwerty NOTIFY qwertyChanged)
-  Q_PROPERTY(KitModel *kits READ getKitModel CONSTANT)
+    Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY gdbPortChanged)
+    Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
+    Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
+    Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
+    Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
+    Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
+    Q_PROPERTY(bool printOnWarn READ getPrintOnWarn WRITE setPrintOnWarn NOTIFY printOnWarnChanged)
+    Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
+    Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
+    Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
+    Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
+    Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
+    Q_PROPERTY(QString version READ getVersion CONSTANT)
+    Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
+    Q_PROPERTY(int keypadLayout READ getKeypadLayout WRITE setKeypadLayout NOTIFY keypadLayoutChanged)
+    Q_PROPERTY(KitModel* kits READ getKitModel CONSTANT)
 
   Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
   Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY
@@ -78,8 +67,8 @@ public:
   bool getIsRunning();
   QString getVersion();
 
-  bool getQwerty();
-  void setQwerty(bool e);
+    int getKeypadLayout();
+    void setKeypadLayout(int layout);
 
   Q_INVOKABLE bool getUSBIPEnabled();
   Q_INVOKABLE void setUSBIPEnabled(bool e);
@@ -169,24 +158,24 @@ public slots:
   void suspended(bool success);
 
 signals:
-  void gdbPortChanged();
-  void gdbEnabledChanged();
-  void rdbPortChanged();
-  void rdbEnabledChanged();
-  void debugOnWarnChanged();
-  void debugOnStartChanged();
-  void printOnWarnChanged();
-  void autostartChanged();
-  void defaultKitChanged();
-  void leftHandedChanged();
-  void suspendOnCloseChanged();
-  void usbDirChanged();
-  void isRunningChanged();
-  void qwertyChanged();
-  void speedChanged();
-  void turboModeChanged();
-  void usbipEnabledChanged();
-  void usbipVerboseChanged();
+    void gdbPortChanged();
+    void gdbEnabledChanged();
+    void rdbPortChanged();
+    void rdbEnabledChanged();
+    void debugOnWarnChanged();
+    void debugOnStartChanged();
+    void printOnWarnChanged();
+    void autostartChanged();
+    void defaultKitChanged();
+    void leftHandedChanged();
+    void suspendOnCloseChanged();
+    void usbDirChanged();
+    void isRunningChanged();
+    void keypadLayoutChanged();
+    void speedChanged();
+    void turboModeChanged();
+    void usbipEnabledChanged();
+    void usbipVerboseChanged();
 
   void currentKitChanged(const Kit &kit);
 
